@@ -19,6 +19,18 @@ Matrix.Translation = function (v)
   throw "Invalid length for Translation";
 }
 
+Matrix.Scale = function (v)
+{
+	if (v.elements.length == 3) {
+		var r = Matrix.I(4);
+		r.elements[0][0] = v.elements[0];
+		r.elements[1][1] = v.elements[1];
+		r.elements[2][2] = v.elements[2];
+		return r;
+	}
+	throw "Invalid length for Scaling";
+}
+
 Matrix.prototype.flatten = function ()
 {
     var result = [];
