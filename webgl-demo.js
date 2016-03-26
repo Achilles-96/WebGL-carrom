@@ -18,6 +18,8 @@ var vertexNormalAttribute;
 var textureCoordAttribute;
 var perspectiveMatrix;
 
+var radius = 6.0;
+var angle = 0.0;
 //
 // start
 //
@@ -51,7 +53,7 @@ function start() {
 		initTextures();
 
 		// Set up to draw the scene periodically.
-
+		
 		setInterval(drawScene, 15);
 	}
 }
@@ -298,6 +300,18 @@ function drawScene() {
 
 	loadIdentity();
 
+	//var camPos = [0.1,radius*Math.cos(angle),radius*Math.sin(angle)];
+//	angle = 120;
+//	console.log(radius * Math.cos(angle*Math.PI/180.0));
+	var camPos = [radius*Math.sin(angle*Math.PI/180.0),3,radius*Math.cos(angle*Math.PI/180.0)];
+	var target = [0,0,0];
+	var up = [0,1,0];
+	angle+=1;
+	if(angle == 360)
+		angle = 0;
+	if(angle%90 ==	0)
+		angle+=1;
+	putCamera(camPos, target, up);
 	// Now move the drawing position a bit to where we want to start
 	// drawing the cube.
 
@@ -305,27 +319,29 @@ function drawScene() {
 	// Save the current matrix, then rotate before we draw.
 
 	mvPushMatrix();
-
-	mvTranslate([0.0, 0.0, -4.0]);
-	mvRotate(cubeRotation, [1, 0, 1]);
-	mvScale([1.5,0.1,0.1]);
-
+	mvTranslate([0.0, 0.0, 2.0]);
+	mvScale([2.09,0.1,0.1]);
 	matrixSetup();
 	// Restore the original matrix
-
 	mvPopMatrix();
 
 	mvPushMatrix();
-
-	mvTranslate([0.0, 1.0, -8.0]);
-	mvRotate(cubeRotation, [1, 0, 1]);
-	mvScale([1.5,0.1,0.1]);
-
+	mvTranslate([0.0, 0.0, -2.0]);
+	mvScale([2.09,0.1,0.1]);
 	matrixSetup();
-	// Restore the original matrix
-
 	mvPopMatrix();
 
+	mvPushMatrix();
+	mvTranslate([2.0, 0.0, 0.0]);
+	mvScale([0.1,0.1,2.09]);
+	matrixSetup();
+	mvPopMatrix();
+	
+	mvPushMatrix();
+	mvTranslate([-2.0, 0.0, 0.0]);
+	mvScale([0.1,0.1,2.09]);
+	matrixSetup();
+	mvPopMatrix();
 	// Update the rotation for the next draw, if it's time to do so.
 
 	var currentTime = (new Date).getTime();
@@ -336,6 +352,145 @@ function drawScene() {
 	}
 
 	lastCubeUpdateTime = currentTime;
+}
+
+function cross(a, b) {
+  return [a[1] * b[2] - a[2] * b[1],
+          a[2] * b[0] - a[0] * b[2],
+          a[0] * b[1] - a[1] * b[0]];
+}
+
+function subtractVectors(a, b) {
+  return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
+
+function normalize(v) {
+	var length = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+	// make sure we don't divide by 0.
+	if (length > 0.00001) {
+		return [v[0] / length, v[1] / length, v[2] / length];
+	} else {
+		return [0, 0, 0];
+	}
+}
+
+function makeLookAt(cameraPosition, target, up) {
+	var zAxis = normalize(
+			subtractVectors(cameraPosition, target));
+	var xAxis = normalize(cross(up, zAxis));
+	var yAxis = normalize(cross(zAxis, xAxis));	
+	
+	var r = Matrix.I(4);
+	r.elements[0][0] = xAxis[0];
+	r.elements[1][0] = xAxis[1];
+	r.elements[2][0] = xAxis[2];
+	r.elements[3][0] = 0;
+	r.elements[0][1] = yAxis[0];
+	r.elements[1][1] = yAxis[1];
+	r.elements[2][1] = yAxis[2];
+	r.elements[3][1] = 0;
+	r.elements[0][2] = zAxis[0];
+	r.elements[1][2] = zAxis[1];
+	r.elements[2][2] = zAxis[2];
+	r.elements[3][2] = 0;
+	r.elements[0][3] = cameraPosition[0];
+	r.elements[1][3] = cameraPosition[1];
+	r.elements[2][3] = cameraPosition[2];
+	r.elements[3][3] = 1;
+	return r;
+}
+
+function putCamera(camPos, target, up) {
+
+	//var camMatrix = makeLookAt(camPos[0], camPos[1], camPos[2], target[0], target[1], target[2], up[0], up[1], up[2]);
+	var camMatrix = makeLookAt(camPos, target, up);
+	var viewMatrix = makeInverse(camMatrix);
+	multMatrix(viewMatrix);
+}
+
+function makeInverse(m) {
+	var m00 = m.elements[0][0];
+	var m01 = m.elements[0][1];
+	var m02 = m.elements[0][2];
+	var m03 = m.elements[0][3];
+	var m10 = m.elements[1][0];
+	var m11 = m.elements[1][1];
+	var m12 = m.elements[1][2];
+	var m13 = m.elements[1][3];
+	var m20 = m.elements[2][0];
+	var m21 = m.elements[2][1];
+	var m22 = m.elements[2][2];
+	var m23 = m.elements[2][3];
+	var m30 = m.elements[3][0];
+	var m31 = m.elements[3][1];
+	var m32 = m.elements[3][2];
+	var m33 = m.elements[3][3];
+	var tmp_0  = m22 * m33;
+	var tmp_1  = m32 * m23;
+	var tmp_2  = m12 * m33;
+	var tmp_3  = m32 * m13;
+	var tmp_4  = m12 * m23;
+	var tmp_5  = m22 * m13;
+	var tmp_6  = m02 * m33;
+	var tmp_7  = m32 * m03;
+	var tmp_8  = m02 * m23;
+	var tmp_9  = m22 * m03;
+	var tmp_10 = m02 * m13;
+	var tmp_11 = m12 * m03;
+	var tmp_12 = m20 * m31;
+	var tmp_13 = m30 * m21;
+	var tmp_14 = m10 * m31;
+	var tmp_15 = m30 * m11;
+	var tmp_16 = m10 * m21;
+	var tmp_17 = m20 * m11;
+	var tmp_18 = m00 * m31;
+	var tmp_19 = m30 * m01;
+	var tmp_20 = m00 * m21;
+	var tmp_21 = m20 * m01;
+	var tmp_22 = m00 * m11;
+	var tmp_23 = m10 * m01;
+
+	var t0 = (tmp_0 * m11 + tmp_3 * m21 + tmp_4 * m31) -
+		(tmp_1 * m11 + tmp_2 * m21 + tmp_5 * m31);
+	var t1 = (tmp_1 * m01 + tmp_6 * m21 + tmp_9 * m31) -
+		(tmp_0 * m01 + tmp_7 * m21 + tmp_8 * m31);
+	var t2 = (tmp_2 * m01 + tmp_7 * m11 + tmp_10 * m31) -
+		(tmp_3 * m01 + tmp_6 * m11 + tmp_11 * m31);
+	var t3 = (tmp_5 * m01 + tmp_8 * m11 + tmp_11 * m21) -
+		(tmp_4 * m01 + tmp_9 * m11 + tmp_10 * m21);
+
+	var d = 1.0 / (m00 * t0 + m10 * t1 + m20 * t2 + m30 * t3);
+
+	var r = Matrix.I(4);
+	r.elements[0][0] = d * t0;
+	r.elements[0][1] =	  d * t1;
+	r.elements[0][2] =	  d * t2;
+	r.elements[0][3] =	  d * t3;
+	r.elements[1][0] =	  d * ((tmp_1 * m10 + tmp_2 * m20 + tmp_5 * m30) -
+				  (tmp_0 * m10 + tmp_3 * m20 + tmp_4 * m30));
+	r.elements[1][1] =	  d * ((tmp_0 * m00 + tmp_7 * m20 + tmp_8 * m30) -
+				  (tmp_1 * m00 + tmp_6 * m20 + tmp_9 * m30));
+	r.elements[1][2] =	  d * ((tmp_3 * m00 + tmp_6 * m10 + tmp_11 * m30) -
+				  (tmp_2 * m00 + tmp_7 * m10 + tmp_10 * m30));
+	r.elements[1][3] =	  d * ((tmp_4 * m00 + tmp_9 * m10 + tmp_10 * m20) -
+				  (tmp_5 * m00 + tmp_8 * m10 + tmp_11 * m20));
+	r.elements[2][0] =	  d * ((tmp_12 * m13 + tmp_15 * m23 + tmp_16 * m33) -
+				  (tmp_13 * m13 + tmp_14 * m23 + tmp_17 * m33));
+	r.elements[2][1] =	  d * ((tmp_13 * m03 + tmp_18 * m23 + tmp_21 * m33) -
+				  (tmp_12 * m03 + tmp_19 * m23 + tmp_20 * m33));
+	r.elements[2][2] =	  d * ((tmp_14 * m03 + tmp_19 * m13 + tmp_22 * m33) -
+				  (tmp_15 * m03 + tmp_18 * m13 + tmp_23 * m33));
+	r.elements[2][3] =	  d * ((tmp_17 * m03 + tmp_20 * m13 + tmp_23 * m23) -
+				  (tmp_16 * m03 + tmp_21 * m13 + tmp_22 * m23));
+	r.elements[3][0] =	  d * ((tmp_14 * m22 + tmp_17 * m32 + tmp_13 * m12) -
+				  (tmp_16 * m32 + tmp_12 * m12 + tmp_15 * m22));
+	r.elements[3][1] =	  d * ((tmp_20 * m32 + tmp_12 * m02 + tmp_19 * m22) -
+				  (tmp_18 * m22 + tmp_21 * m32 + tmp_13 * m02));
+	r.elements[3][2] =	  d * ((tmp_18 * m12 + tmp_23 * m32 + tmp_15 * m02) -
+				  (tmp_22 * m32 + tmp_14 * m02 + tmp_19 * m12));
+	r.elements[3][3] =	  d * ((tmp_22 * m22 + tmp_16 * m02 + tmp_21 * m12) -
+				  (tmp_20 * m12 + tmp_23 * m22 + tmp_17 * m02));
+	return r;
 }
 function matrixSetup(){
 	// Draw the cube by binding the array buffer to the cube's vertices
