@@ -8,8 +8,8 @@ var cubeVerticesIndexBuffer;
 var cubeRotation = 0.0;
 var lastCubeUpdateTime = 0;
 
-var cubeImage;
-var cubeTexture;
+var borderImage, boardImage;
+var borderTexture, boardTexture;
 
 var mvMatrix;
 var shaderProgram;
@@ -263,10 +263,15 @@ function initBuffers() {
 // the job; it gets called each time a texture finishes loading.
 //
 function initTextures() {
-	cubeTexture = gl.createTexture();
-	cubeImage = new Image();
-	cubeImage.onload = function() { handleTextureLoaded(cubeImage, cubeTexture); }
-	cubeImage.src = "sidebar-bar.png";
+	borderTexture = gl.createTexture();
+	borderImage = new Image();
+	borderImage.onload = function() { handleTextureLoaded(borderImage, borderTexture); }
+	borderImage.src = "sidebar-bar.png";
+	
+	boardTexture = gl.createTexture();
+	boardImage = new Image();
+	boardImage.onload = function() { handleTextureLoaded(boardImage, boardTexture); }
+	boardImage.src = "board2.png";
 }
 
 function handleTextureLoaded(image, texture) {
@@ -304,6 +309,7 @@ function drawScene() {
 //	angle = 120;
 //	console.log(radius * Math.cos(angle*Math.PI/180.0));
 	var camPos = [radius*Math.sin(angle*Math.PI/180.0),3,radius*Math.cos(angle*Math.PI/180.0)];
+	//var camPos = [radius*Math.sin(angle*Math.PI/180.0),5,0];
 	var target = [0,0,0];
 	var up = [0,1,0];
 	angle+=1;
@@ -317,31 +323,37 @@ function drawScene() {
 
 
 	// Save the current matrix, then rotate before we draw.
+	mvPushMatrix();
+	mvTranslate([0.0, -0.125, 0.0]);
+	mvScale([1.9,0.1,1.9]);
+	matrixSetup(boardTexture);
+	mvPopMatrix();
 
 	mvPushMatrix();
 	mvTranslate([0.0, 0.0, 2.0]);
 	mvScale([2.09,0.1,0.1]);
-	matrixSetup();
+	matrixSetup(borderTexture);
 	// Restore the original matrix
 	mvPopMatrix();
 
 	mvPushMatrix();
 	mvTranslate([0.0, 0.0, -2.0]);
 	mvScale([2.09,0.1,0.1]);
-	matrixSetup();
+	matrixSetup(borderTexture);
 	mvPopMatrix();
 
 	mvPushMatrix();
 	mvTranslate([2.0, 0.0, 0.0]);
 	mvScale([0.1,0.1,2.09]);
-	matrixSetup();
+	matrixSetup(borderTexture);
 	mvPopMatrix();
 	
 	mvPushMatrix();
 	mvTranslate([-2.0, 0.0, 0.0]);
 	mvScale([0.1,0.1,2.09]);
-	matrixSetup();
+	matrixSetup(borderTexture);
 	mvPopMatrix();
+	
 	// Update the rotation for the next draw, if it's time to do so.
 
 	var currentTime = (new Date).getTime();
@@ -492,7 +504,7 @@ function makeInverse(m) {
 				  (tmp_20 * m12 + tmp_23 * m22 + tmp_17 * m02));
 	return r;
 }
-function matrixSetup(){
+function matrixSetup(textureToUse){
 	// Draw the cube by binding the array buffer to the cube's vertices
 	// array, setting attributes, and pushing it to GL.
 
@@ -512,7 +524,7 @@ function matrixSetup(){
 	// Specify the texture to map onto the faces.
 
 	gl.activeTexture(gl.TEXTURE0);
-	gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
+	gl.bindTexture(gl.TEXTURE_2D, textureToUse);
 	gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
 
 	// Draw the cube.
