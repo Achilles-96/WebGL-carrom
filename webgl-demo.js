@@ -13,8 +13,8 @@ var coinVerticesNormalBuffer;
 var coinVerticesIndexBuffer;
 var coinVerticesTextureCoordBuffer;
 
-var borderImage, boardImage, coinImage;
-var borderTexture, boardTexture, coinTexture;
+var borderImage, boardImage, coinImage, coinWhiteImage, coinRedImage;
+var borderTexture, boardTexture, coinTexture, coinWhiteTexture, coinRedImage;
 
 var mvMatrix;
 var shaderProgram;
@@ -28,6 +28,7 @@ var angle = 0.0;
 
 var blackCoins = [];
 var whiteCoins = [];
+var redCoin = [];
 //
 // start
 //
@@ -67,7 +68,20 @@ function start() {
 			var ang = (360.0/6)*i*Math.PI/180.0;
 			blackCoins.push([0.5*Math.sin(ang),0.5*Math.cos(ang)]);
 		}
+		for(i=0;i<3;i++){
+			var ang = ((360.0/3)*i+30)*Math.PI/180.0;
+			blackCoins.push([0.3*Math.sin(ang),0.3*Math.cos(ang)]);
+		}
 
+		for(i=0;i<6;i++){
+			var ang = ((360.0/6)*i+30)*Math.PI/180.0;
+			whiteCoins.push([0.5*Math.sin(ang),0.5*Math.cos(ang)]);
+		}
+		for(i=0;i<3;i++){
+			var ang = ((360.0/3)*i+90)*Math.PI/180.0;
+			whiteCoins.push([0.25*Math.sin(ang),0.25*Math.cos(ang)]);
+		}
+		redCoin.push([0,0])
 		setInterval(drawScene, 15);
 	}
 }
@@ -123,6 +137,10 @@ function initBuffersForCoin() {
 		var ang = (360.0/30.0)*i*Math.PI/180.0;
 		vertices.push(coinradius*Math.sin(ang),-1.0, coinradius*Math.cos(ang));
 	}
+	for(i=0;i<div;i++) {
+		var ang = (360.0/30.0)*i*Math.PI/180.0;
+		vertices.push(coinradius*Math.sin(ang),0.0, coinradius*Math.cos(ang));
+	}
 	// Now pass the list of vertices into WebGL to build the shape. We
 	// do this by creating a Float32Array from the JavaScript array,
 	// then use it to fill the current vertex buffer.
@@ -144,6 +162,9 @@ function initBuffersForCoin() {
 	for(i=0;i<div;i++) {
 		vertexNormals.push(0.0,1.0,0.0);
 	}
+	for(i=0;i<div;i++) {
+		vertexNormals.push(0.0,1.0,0.0);
+	}
 
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals),
 			gl.STATIC_DRAW);
@@ -159,11 +180,17 @@ function initBuffersForCoin() {
 			];
 	for(i=0;i<div;i++) {
 		var ang = (360.0/30.0)*i*Math.PI/180.0;
-		textureCoordinates.push(0.5 + 0.3*Math.sin(ang), 0.5 + 0.3*Math.cos(ang));
+		textureCoordinates.push(0.5 + 0.5*Math.sin(ang), 0.5 + 0.5*Math.cos(ang));
 	}
 	for(i=0;i<div;i++) {
 		var ang = (360.0/30.0)*i*Math.PI/180.0;
-		textureCoordinates.push(0.5 + 0.5*Math.sin(ang), 0.5 + 0.5*Math.cos(ang));
+		//textureCoordinates.push(0.5 + 0.5*Math.sin(ang), 0.5 + 0.5*Math.cos(ang));
+		textureCoordinates.push(1,1);
+	}
+	for(i=0;i<div;i++) {
+		var ang = (360.0/30.0)*i*Math.PI/180.0;
+		//textureCoordinates.push(0.5 + 0.5*Math.sin(ang), 0.5 + 0.5*Math.cos(ang));
+		textureCoordinates.push(1,1);
 	}
 	console.log(textureCoordinates);
 
@@ -185,8 +212,8 @@ function initBuffersForCoin() {
 	}
 	coinVertexIndices.push(0, div, 1);
 	for(i=1;i<div;i++){
-		coinVertexIndices.push(i, i+1 , div+i);
-		coinVertexIndices.push(i+1, div+i , div+i+1);
+		coinVertexIndices.push(2*div+i, 2*div+i+1 , div+i);
+		coinVertexIndices.push(2*div+i+1, div+i , div+i+1);
 	}
 	coinVertexIndices.push(div, 1, div+div);
 	coinVertexIndices.push(1, div+div, div + 1);
@@ -394,6 +421,16 @@ function initTextures() {
 	coinImage = new Image();
 	coinImage.onload = function() { handleTextureLoaded(coinImage, coinTexture); }
 	coinImage.src = "coin.png";
+	
+	coinWhiteTexture = gl.createTexture();
+	coinWhiteImage = new Image();
+	coinWhiteImage.onload = function() { handleTextureLoaded(coinWhiteImage, coinWhiteTexture); }
+	coinWhiteImage.src = "coin-white.png";
+	
+	coinRedTexture = gl.createTexture();
+	coinRedImage = new Image();
+	coinRedImage.onload = function() { handleTextureLoaded(coinRedImage, coinRedTexture); }
+	coinRedImage.src = "coin_red2.png";
 }
 
 function handleTextureLoaded(image, texture) {
@@ -430,8 +467,9 @@ function drawScene() {
 	//var camPos = [0.1,radius*Math.cos(angle),radius*Math.sin(angle)];
 //	angle = 120;
 //	console.log(radius * Math.cos(angle*Math.PI/180.0));
-	var camPos = [radius*Math.sin(angle*Math.PI/180.0),3,radius*Math.cos(angle*Math.PI/180.0)];
-	//var camPos = [0.01,6,0];
+	radius = 6;
+	//var camPos = [radius*Math.sin(angle*Math.PI/180.0),3,radius*Math.cos(angle*Math.PI/180.0)];
+	var camPos = [0.01,6,0];
 	var target = [0,0,0];
 	var up = [0,1,0];
 	angle+=1;
@@ -477,7 +515,7 @@ function drawScene() {
 	mvPopMatrix();
 
 	var i;
-	for(i=0;i<6;i++){
+	for(i=0;i<9;i++){
 		mvPushMatrix();
 		mvTranslate([blackCoins[i][0], 0.04, blackCoins[i][1] ]);
 		mvScale([0.1,0.04,0.1]);
@@ -485,6 +523,19 @@ function drawScene() {
 		mvPopMatrix();
 	}
 	
+	for(i=0;i<9;i++){
+		mvPushMatrix();
+		mvTranslate([whiteCoins[i][0], 0.04, whiteCoins[i][1] ]);
+		mvScale([0.1,0.04,0.1]);
+		matrixSetup2(coinWhiteTexture);
+		mvPopMatrix();
+	}
+	
+	mvPushMatrix();
+	mvTranslate([redCoin[0][0], 0.04, redCoin[0][1]]);
+	mvScale([0.1,0.04,0.1]);
+	matrixSetup2(coinRedTexture);
+	mvPopMatrix();
 /*	mvPushMatrix();
 	mvTranslate([0.0, -1.0, 0.0]);
 	mvScale([2,0.1,2]);
