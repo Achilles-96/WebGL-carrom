@@ -13,8 +13,8 @@ var coinVerticesNormalBuffer;
 var coinVerticesIndexBuffer;
 var coinVerticesTextureCoordBuffer;
 
-var borderImage, boardImage, coinImage, coinWhiteImage, coinRedImage;
-var borderTexture, boardTexture, coinTexture, coinWhiteTexture, coinRedImage;
+var borderImage, boardImage, coinImage, coinWhiteImage, coinRedImage, strikerImage;
+var borderTexture, boardTexture, coinTexture, coinWhiteTexture, coinRedTexture, strikerTexture ;
 
 var mvMatrix;
 var shaderProgram;
@@ -29,6 +29,7 @@ var angle = 0.0;
 var blackCoins = [];
 var whiteCoins = [];
 var redCoin = [];
+var striker = [];
 //
 // start
 //
@@ -82,6 +83,7 @@ function start() {
 			whiteCoins.push([0.25*Math.sin(ang),0.25*Math.cos(ang)]);
 		}
 		redCoin.push([0,0])
+		striker.push([1.5,0])
 		setInterval(drawScene, 15);
 	}
 }
@@ -431,6 +433,11 @@ function initTextures() {
 	coinRedImage = new Image();
 	coinRedImage.onload = function() { handleTextureLoaded(coinRedImage, coinRedTexture); }
 	coinRedImage.src = "coin_red2.png";
+	
+	strikerTexture = gl.createTexture();
+	strikerImage = new Image();
+	strikerImage.onload = function() { handleTextureLoaded(strikerImage, strikerTexture); }
+	strikerImage.src = "striker.png";
 }
 
 function handleTextureLoaded(image, texture) {
@@ -468,8 +475,8 @@ function drawScene() {
 //	angle = 120;
 //	console.log(radius * Math.cos(angle*Math.PI/180.0));
 	radius = 6;
-	//var camPos = [radius*Math.sin(angle*Math.PI/180.0),3,radius*Math.cos(angle*Math.PI/180.0)];
-	var camPos = [0.01,6,0];
+	var camPos = [radius*Math.sin(angle*Math.PI/180.0),3,radius*Math.cos(angle*Math.PI/180.0)];
+	//var camPos = [0.01,6,0];
 	var target = [0,0,0];
 	var up = [0,1,0];
 	angle+=1;
@@ -535,6 +542,12 @@ function drawScene() {
 	mvTranslate([redCoin[0][0], 0.04, redCoin[0][1]]);
 	mvScale([0.1,0.04,0.1]);
 	matrixSetup2(coinRedTexture);
+	mvPopMatrix();
+	
+	mvPushMatrix();
+	mvTranslate([striker[0][0], 0.04, striker[0][1]]);
+	mvScale([0.15,0.04,0.15]);
+	matrixSetup2(strikerTexture);
 	mvPopMatrix();
 /*	mvPushMatrix();
 	mvTranslate([0.0, -1.0, 0.0]);
