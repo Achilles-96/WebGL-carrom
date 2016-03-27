@@ -4,12 +4,17 @@ var gl;
 var cubeVerticesBuffer;
 var cubeVerticesTextureCoordBuffer;
 var cubeVerticesIndexBuffer;
-var cubeVerticesIndexBuffer;
+var cubeVerticesNormalBuffer;
 var cubeRotation = 0.0;
 var lastCubeUpdateTime = 0;
 
-var borderImage, boardImage;
-var borderTexture, boardTexture;
+var coinVerticesBuffer;
+var coinVerticesNormalBuffer;
+var coinVerticesIndexBuffer;
+var coinVerticesTextureCoordBuffer;
+
+var borderImage, boardImage, coinImage;
+var borderTexture, boardTexture, coinTexture;
 
 var mvMatrix;
 var shaderProgram;
@@ -20,6 +25,9 @@ var perspectiveMatrix;
 
 var radius = 6.0;
 var angle = 0.0;
+
+var blackCoins = [];
+var whiteCoins = [];
 //
 // start
 //
@@ -37,7 +45,6 @@ function start() {
 		gl.clearDepth(1.0);                 // Clear everything
 		gl.enable(gl.DEPTH_TEST);           // Enable depth testing
 		gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
-
 		// Initialize the shaders; this is where all the lighting for the
 		// vertices and so forth is established.
 
@@ -46,14 +53,21 @@ function start() {
 		// Here's where we call the routine that builds all the objects
 		// we'll be drawing.
 
-		initBuffers();
+		initBuffersForCube();
+		initBuffersForCoin();
 
 		// Next, load and set up the textures we'll be using.
 
 		initTextures();
 
 		// Set up to draw the scene periodically.
-		
+
+		var i;
+		for(i=0;i<6;i++){
+			var ang = (360.0/6)*i*Math.PI/180.0;
+			blackCoins.push([0.5*Math.sin(ang),0.5*Math.cos(ang)]);
+		}
+
 		setInterval(drawScene, 15);
 	}
 }
@@ -68,6 +82,7 @@ function initWebGL() {
 	gl = null;
 
 	try {
+		//gl = canvas.getContext("experimental-webgl",{premultipliedAlpha:false});
 		gl = canvas.getContext("experimental-webgl");
 	}
 	catch(e) {
@@ -80,13 +95,115 @@ function initWebGL() {
 	}
 }
 
+function initBuffersForCoin() {
+
+	// Create a buffer for the cube's vertices.
+
+	coinVerticesBuffer = gl.createBuffer();
+
+	// Select the cubeVerticesBuffer as the one to apply vertex
+	// operations to from here out.
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, coinVerticesBuffer);
+
+	// Now create an array of vertices for the cube.
+
+	var vertices = [
+		//center
+		0.0, 0.0, 0.0,
+		];
+	var i;
+	var div = 30;
+	var coinradius = 1;
+	for(i=0;i<div;i++) {
+		var ang = (360.0/30.0)*i*Math.PI/180.0;
+		vertices.push(coinradius*Math.sin(ang),0.0, coinradius*Math.cos(ang));
+	}
+	for(i=0;i<div;i++) {
+		var ang = (360.0/30.0)*i*Math.PI/180.0;
+		vertices.push(coinradius*Math.sin(ang),-1.0, coinradius*Math.cos(ang));
+	}
+	// Now pass the list of vertices into WebGL to build the shape. We
+	// do this by creating a Float32Array from the JavaScript array,
+	// then use it to fill the current vertex buffer.
+
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+	// Set up the normals for the vertices, so that we can compute lighting.
+
+	coinVerticesNormalBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, coinVerticesNormalBuffer);
+
+	var vertexNormals = [
+		//center
+		0.0, 1.0, 0.0
+		];
+	for(i=0;i<div;i++) {
+		vertexNormals.push(0.0,1.0,0.0);
+	}
+	for(i=0;i<div;i++) {
+		vertexNormals.push(0.0,1.0,0.0);
+	}
+
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals),
+			gl.STATIC_DRAW);
+
+	// Map the texture onto the cube's faces.
+
+	coinVerticesTextureCoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, coinVerticesTextureCoordBuffer);
+
+	var textureCoordinates = [
+		//center
+		0.5, 0.5
+			];
+	for(i=0;i<div;i++) {
+		var ang = (360.0/30.0)*i*Math.PI/180.0;
+		textureCoordinates.push(0.5 + 0.3*Math.sin(ang), 0.5 + 0.3*Math.cos(ang));
+	}
+	for(i=0;i<div;i++) {
+		var ang = (360.0/30.0)*i*Math.PI/180.0;
+		textureCoordinates.push(0.5 + 0.5*Math.sin(ang), 0.5 + 0.5*Math.cos(ang));
+	}
+	console.log(textureCoordinates);
+
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
+			gl.STATIC_DRAW);
+
+	// Build the element array buffer; this specifies the indices
+	// into the vertex array for each face's vertices.
+
+	coinVerticesIndexBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, coinVerticesIndexBuffer);
+	// This array defines each face as two triangles, using the
+	// indices into the vertex array to specify each triangle's
+	// position.
+
+	var coinVertexIndices = [];
+	for(i=1;i<div;i++){
+		coinVertexIndices.push(0, i , i+1);
+	}
+	coinVertexIndices.push(0, div, 1);
+	for(i=1;i<div;i++){
+		coinVertexIndices.push(i, i+1 , div+i);
+		coinVertexIndices.push(i+1, div+i , div+i+1);
+	}
+	coinVertexIndices.push(div, 1, div+div);
+	coinVertexIndices.push(1, div+div, div + 1);
+	console.log(coinVertexIndices);
+
+			// Now send the element array to GL
+
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
+			new Uint16Array(coinVertexIndices), gl.STATIC_DRAW);
+}
 //
 // initBuffers
 //
 // Initialize the buffers we'll need. For this demo, we just have
 // one object -- a simple two-dimensional cube.
 //
-function initBuffers() {
+function initBuffersForCube() {
 
 	// Create a buffer for the cube's vertices.
 
@@ -247,12 +364,12 @@ function initBuffers() {
 		12, 13, 14,     12, 14, 15,   // bottom
 		16, 17, 18,     16, 18, 19,   // right
 		20, 21, 22,     20, 22, 23    // left
-			]
+			];
 
 			// Now send the element array to GL
 
-			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-					new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
+			new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
 }
 
 //
@@ -271,7 +388,12 @@ function initTextures() {
 	boardTexture = gl.createTexture();
 	boardImage = new Image();
 	boardImage.onload = function() { handleTextureLoaded(boardImage, boardTexture); }
-	boardImage.src = "board2.png";
+	boardImage.src = "boardfinal.png";
+	
+	coinTexture = gl.createTexture();
+	coinImage = new Image();
+	coinImage.onload = function() { handleTextureLoaded(coinImage, coinTexture); }
+	coinImage.src = "coin.png";
 }
 
 function handleTextureLoaded(image, texture) {
@@ -309,7 +431,7 @@ function drawScene() {
 //	angle = 120;
 //	console.log(radius * Math.cos(angle*Math.PI/180.0));
 	var camPos = [radius*Math.sin(angle*Math.PI/180.0),3,radius*Math.cos(angle*Math.PI/180.0)];
-	//var camPos = [radius*Math.sin(angle*Math.PI/180.0),5,0];
+	//var camPos = [0.01,6,0];
 	var target = [0,0,0];
 	var up = [0,1,0];
 	angle+=1;
@@ -325,35 +447,49 @@ function drawScene() {
 	// Save the current matrix, then rotate before we draw.
 	mvPushMatrix();
 	mvTranslate([0.0, -0.125, 0.0]);
-	mvScale([1.9,0.1,1.9]);
+	mvScale([2.25,0.1,2.25]);
 	matrixSetup(boardTexture);
 	mvPopMatrix();
 
 	mvPushMatrix();
-	mvTranslate([0.0, 0.0, 2.0]);
-	mvScale([2.09,0.1,0.1]);
+	mvTranslate([0.0, 0.0, 2.3]);
+	mvScale([2.39,0.1,0.1]);
 	matrixSetup(borderTexture);
 	// Restore the original matrix
 	mvPopMatrix();
 
 	mvPushMatrix();
-	mvTranslate([0.0, 0.0, -2.0]);
-	mvScale([2.09,0.1,0.1]);
+	mvTranslate([0.0, 0.0, -2.3]);
+	mvScale([2.39,0.1,0.1]);
 	matrixSetup(borderTexture);
 	mvPopMatrix();
 
 	mvPushMatrix();
-	mvTranslate([2.0, 0.0, 0.0]);
-	mvScale([0.1,0.1,2.09]);
+	mvTranslate([2.3, 0.0, 0.0]);
+	mvScale([0.1,0.1,2.39]);
 	matrixSetup(borderTexture);
 	mvPopMatrix();
 	
 	mvPushMatrix();
-	mvTranslate([-2.0, 0.0, 0.0]);
-	mvScale([0.1,0.1,2.09]);
+	mvTranslate([-2.3, 0.0, 0.0]);
+	mvScale([0.1,0.1,2.39]);
 	matrixSetup(borderTexture);
 	mvPopMatrix();
+
+	var i;
+	for(i=0;i<6;i++){
+		mvPushMatrix();
+		mvTranslate([blackCoins[i][0], 0.04, blackCoins[i][1] ]);
+		mvScale([0.1,0.04,0.1]);
+		matrixSetup2(coinTexture);
+		mvPopMatrix();
+	}
 	
+/*	mvPushMatrix();
+	mvTranslate([0.0, -1.0, 0.0]);
+	mvScale([2,0.1,2]);
+	matrixSetup(borderTexture);
+	mvPopMatrix();*/
 	// Update the rotation for the next draw, if it's time to do so.
 
 	var currentTime = (new Date).getTime();
@@ -503,6 +639,35 @@ function makeInverse(m) {
 	r.elements[3][3] =	  d * ((tmp_22 * m22 + tmp_16 * m02 + tmp_21 * m12) -
 				  (tmp_20 * m12 + tmp_23 * m22 + tmp_17 * m02));
 	return r;
+}
+function matrixSetup2(textureToUse){
+	// Draw the cube by binding the array buffer to the cube's vertices
+	// array, setting attributes, and pushing it to GL.
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, coinVerticesBuffer);
+	gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+	// Set the texture coordinates attribute for the vertices.
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, coinVerticesTextureCoordBuffer);
+	gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
+	// Bind the normals buffer to the shader attribute.
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, coinVerticesNormalBuffer);
+	gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+
+	// Specify the texture to map onto the faces.
+
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, textureToUse);
+	gl.uniform1i(gl.getUniformLocation(shaderProgram, "uSampler"), 0);
+
+	// Draw the cube.
+
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, coinVerticesIndexBuffer);
+	setMatrixUniforms();
+	gl.drawElements(gl.TRIANGLES, 270, gl.UNSIGNED_SHORT, 0);
 }
 function matrixSetup(textureToUse){
 	// Draw the cube by binding the array buffer to the cube's vertices
