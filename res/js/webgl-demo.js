@@ -420,32 +420,32 @@ function initTextures() {
 	borderTexture = gl.createTexture();
 	borderImage = new Image();
 	borderImage.onload = function() { handleTextureLoaded(borderImage, borderTexture); }
-	borderImage.src = "sidebar-bar.png";
+	borderImage.src = "res/images/sidebar-bar.png";
 	
 	boardTexture = gl.createTexture();
 	boardImage = new Image();
 	boardImage.onload = function() { handleTextureLoaded(boardImage, boardTexture); }
-	boardImage.src = "boardfinal2.png";
+	boardImage.src = "res/images/boardfinal2.png";
 	
 	coinTexture = gl.createTexture();
 	coinImage = new Image();
 	coinImage.onload = function() { handleTextureLoaded(coinImage, coinTexture); }
-	coinImage.src = "coin.png";
+	coinImage.src = "res/images/coin.png";
 	
 	coinWhiteTexture = gl.createTexture();
 	coinWhiteImage = new Image();
 	coinWhiteImage.onload = function() { handleTextureLoaded(coinWhiteImage, coinWhiteTexture); }
-	coinWhiteImage.src = "coin-white.png";
+	coinWhiteImage.src = "res/images/coin-white.png";
 	
 	coinRedTexture = gl.createTexture();
 	coinRedImage = new Image();
 	coinRedImage.onload = function() { handleTextureLoaded(coinRedImage, coinRedTexture); }
-	coinRedImage.src = "coin_red2.png";
+	coinRedImage.src = "res/images/coin_red2.png";
 	
 	strikerTexture = gl.createTexture();
 	strikerImage = new Image();
 	strikerImage.onload = function() { handleTextureLoaded(strikerImage, strikerTexture); }
-	strikerImage.src = "striker.png";
+	strikerImage.src = "res/images/striker.png";
 }
 
 function handleTextureLoaded(image, texture) {
