@@ -30,6 +30,13 @@ var blackCoins = [];
 var whiteCoins = [];
 var redCoin = [];
 var striker = [];
+var marker = [];
+
+var TOP_VIEW = 0;
+var PLAYER_VIEW = 1;
+var STRIKER_VIEW = 2;
+var camera = TOP_VIEW;
+
 //
 // start
 //
@@ -82,8 +89,9 @@ function start() {
 			var ang = ((360.0/3)*i+90)*Math.PI/180.0;
 			whiteCoins.push([0.25*Math.sin(ang),0.25*Math.cos(ang)]);
 		}
-		redCoin.push([0,0])
-		striker.push([1.5,0])
+		redCoin.push([0,0]);
+		striker.push([0,1.52]);
+		marker.push([0,0]);
 		setInterval(drawScene, 15);
 	}
 }
@@ -217,8 +225,8 @@ function initBuffersForCoin() {
 		coinVertexIndices.push(2*div+i, 2*div+i+1 , div+i);
 		coinVertexIndices.push(2*div+i+1, div+i , div+i+1);
 	}
-	coinVertexIndices.push(div, 1, div+div);
-	coinVertexIndices.push(1, div+div, div + 1);
+	coinVertexIndices.push(3*div, 2*div+1, div+div);
+	coinVertexIndices.push(2*div+1, div+div, div + 1);
 	console.log(coinVertexIndices);
 
 			// Now send the element array to GL
@@ -417,7 +425,7 @@ function initTextures() {
 	boardTexture = gl.createTexture();
 	boardImage = new Image();
 	boardImage.onload = function() { handleTextureLoaded(boardImage, boardTexture); }
-	boardImage.src = "boardfinal.png";
+	boardImage.src = "boardfinal2.png";
 	
 	coinTexture = gl.createTexture();
 	coinImage = new Image();
@@ -474,16 +482,27 @@ function drawScene() {
 	//var camPos = [0.1,radius*Math.cos(angle),radius*Math.sin(angle)];
 //	angle = 120;
 //	console.log(radius * Math.cos(angle*Math.PI/180.0));
-	radius = 6;
-	var camPos = [radius*Math.sin(angle*Math.PI/180.0),3,radius*Math.cos(angle*Math.PI/180.0)];
-	//var camPos = [0.01,6,0];
-	var target = [0,0,0];
-	var up = [0,1,0];
-	angle+=1;
-	if(angle == 360)
-		angle = 0;
-	if(angle%90 ==	0)
-		angle+=1;
+	radius = 5;
+	//angle = 0;
+	switch(camera) {
+		case TOP_VIEW:
+			var camPos = [0,6,0.01];
+			var target = [0,0,0];
+			var up = [0,1,0];
+			break;
+		case PLAYER_VIEW:
+			var camPos = [radius*Math.sin(angle*Math.PI/180.0),3,radius*Math.cos(angle*Math.PI/180.0)];
+			var target = [0,0,0];
+			var up = [0,1,0];
+		/*	angle+=1;
+			if(angle == 360)
+				angle = 0;
+			if(angle%90 ==	0)
+				angle+=1;
+		*/	break;
+		case STRIKER_VIEW:
+			//Yet to implement
+	}
 	putCamera(camPos, target, up);
 	// Now move the drawing position a bit to where we want to start
 	// drawing the cube.
@@ -546,8 +565,20 @@ function drawScene() {
 	
 	mvPushMatrix();
 	mvTranslate([striker[0][0], 0.04, striker[0][1]]);
-	mvScale([0.15,0.04,0.15]);
+	mvScale([0.135,0.04,0.135]);
 	matrixSetup2(strikerTexture);
+	mvPopMatrix();
+	
+	mvPushMatrix();
+	mvTranslate([marker[0][0], 0.035, marker[0][1]]);
+	mvScale([0.011,0.01,0.15]);
+	matrixSetup(borderTexture);
+	mvPopMatrix();
+	
+	mvPushMatrix();
+	mvTranslate([marker[0][0], 0.035, marker[0][1]]);
+	mvScale([0.15,0.01,0.011]);
+	matrixSetup(borderTexture);
 	mvPopMatrix();
 /*	mvPushMatrix();
 	mvTranslate([0.0, -1.0, 0.0]);
