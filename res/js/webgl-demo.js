@@ -13,8 +13,8 @@ var coinVerticesNormalBuffer;
 var coinVerticesIndexBuffer;
 var coinVerticesTextureCoordBuffer;
 
-var borderImage, boardImage, coinImage, coinWhiteImage, coinRedImage, strikerImage;
-var borderTexture, boardTexture, coinTexture, coinWhiteTexture, coinRedTexture, strikerTexture ;
+var borderImage, boardImage, coinImage, coinWhiteImage, coinRedImage, strikerImage, powerImage;
+var borderTexture, boardTexture, coinTexture, coinWhiteTexture, coinRedTexture, strikerTexture, powerTexture ;
 
 var mvMatrix;
 var shaderProgram;
@@ -37,6 +37,7 @@ var PLAYER_VIEW = 1;
 var STRIKER_VIEW = 2;
 var camera = TOP_VIEW;
 
+var power = 0;
 //
 // start
 //
@@ -446,6 +447,11 @@ function initTextures() {
 	strikerImage = new Image();
 	strikerImage.onload = function() { handleTextureLoaded(strikerImage, strikerTexture); }
 	strikerImage.src = "res/images/striker.png";
+	
+	powerTexture = gl.createTexture();
+	powerImage = new Image();
+	powerImage.onload = function() { handleTextureLoaded(powerImage, powerTexture); }
+	powerImage.src = "res/images/greenBar.png";
 }
 
 function handleTextureLoaded(image, texture) {
@@ -477,6 +483,7 @@ function drawScene() {
 	// Set the drawing position to the "identity" point, which is
 	// the center of the scene.
 
+	update();
 	loadIdentity();
 
 	//var camPos = [0.1,radius*Math.cos(angle),radius*Math.sin(angle)];
@@ -586,6 +593,23 @@ function drawScene() {
 	matrixSetup(borderTexture);
 	mvPopMatrix();*/
 	// Update the rotation for the next draw, if it's time to do so.
+
+	loadIdentity();
+	var camPos = [0.00,6,0.01];
+	var target = [0,0,0];
+	var up = [0,1,0];
+	putCamera(camPos, target, up);
+	
+	var pos = 0;
+	for(i=0;i<power+1;i++){
+		mvPushMatrix();
+		mvTranslate([2.5, 1, pos]);
+		mvScale([0.11,0.1,0.05]);
+		matrixSetup(powerTexture);
+		mvPopMatrix();
+		pos-=0.11;
+	}
+
 
 	var currentTime = (new Date).getTime();
 	if (lastCubeUpdateTime) {

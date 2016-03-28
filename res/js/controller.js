@@ -15,7 +15,11 @@ var aKey = 65;
 var STR_STATE = 0;
 var AIM_STATE = 1;
 var PWR_STATE = 2;
+var LAUNCH_STATE = 3;
 var state = STR_STATE;
+
+var speedx, speedy;
+
 window.onkeydown = function(e) {
 	if(e.keyCode == enter) {
 		if(state == STR_STATE)
@@ -23,7 +27,9 @@ window.onkeydown = function(e) {
 		else if(state == AIM_STATE)
 			state = PWR_STATE;
 		else if(state == PWR_STATE){
-			//Launch striker
+			state = LAUNCH_STATE;
+			speedx = power*0.01*(marker[0][0] - striker[0][0]);
+			speedy = power*0.01*(marker[0][1] - striker[0][1]);
 		}
 		return;
 	}
@@ -58,5 +64,22 @@ window.onkeydown = function(e) {
 			marker[0][1]+=0.08;
 			marker[0][1] = Math.min(marker[0][1],2.18);
 		}
+	}
+	if(state == PWR_STATE) {
+		if(e.keyCode == upKey){
+			power++;
+			power = Math.min(power,17);
+		}
+		if(e.keyCode == downKey){
+			power--;
+			power = Math.max(power,0);
+		}
+	}
+}
+
+function update() {
+	if(state == LAUNCH_STATE) {
+		striker[0][0] += speedx;
+		striker[0][1] += speedy;
 	}
 }
