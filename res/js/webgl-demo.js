@@ -508,7 +508,10 @@ function drawScene() {
 				angle+=1;
 		*/	break;
 		case STRIKER_VIEW:
-			//Yet to implement
+			var camPos = [striker[0][0], 0.2, striker[0][1]];
+			var target = [striker[0][0], 0.04, striker[0][1]-0.5];
+			var up = [0,1,0];
+			break;
 	}
 	putCamera(camPos, target, up);
 	// Now move the drawing position a bit to where we want to start
@@ -575,31 +578,27 @@ function drawScene() {
 	mvScale([0.135,0.04,0.135]);
 	matrixSetup2(strikerTexture);
 	mvPopMatrix();
-	
-	mvPushMatrix();
-	mvTranslate([marker[0][0], 0.035, marker[0][1]]);
-	mvScale([0.011,0.01,0.15]);
-	matrixSetup(borderTexture);
-	mvPopMatrix();
-	
-	mvPushMatrix();
-	mvTranslate([marker[0][0], 0.035, marker[0][1]]);
-	mvScale([0.15,0.01,0.011]);
-	matrixSetup(borderTexture);
-	mvPopMatrix();
-/*	mvPushMatrix();
-	mvTranslate([0.0, -1.0, 0.0]);
-	mvScale([2,0.1,2]);
-	matrixSetup(borderTexture);
-	mvPopMatrix();*/
-	// Update the rotation for the next draw, if it's time to do so.
 
+	if(state == AIM_STATE || state == PWR_STATE) { 
+		mvPushMatrix();
+		mvTranslate([marker[0][0], 0.035, marker[0][1]]);
+		mvScale([0.011,0.01,0.15]);
+		matrixSetup(borderTexture);
+		mvPopMatrix();
+
+
+		mvPushMatrix();
+		mvTranslate([marker[0][0], 0.035, marker[0][1]]);
+		mvScale([0.15,0.01,0.011]);
+		matrixSetup(borderTexture);
+		mvPopMatrix();
+	}
 	loadIdentity();
 	var camPos = [0.00,6,0.01];
 	var target = [0,0,0];
 	var up = [0,1,0];
 	putCamera(camPos, target, up);
-	
+
 	var pos = 0;
 	for(i=0;i<power+1;i++){
 		mvPushMatrix();

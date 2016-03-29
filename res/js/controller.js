@@ -11,6 +11,7 @@ var downKey = 40;
 var enter = 13;
 var wKey = 87;
 var aKey = 65;
+var sKey = 83;
 
 var STR_STATE = 0;
 var AIM_STATE = 1;
@@ -30,8 +31,8 @@ window.onkeydown = function(e) {
 			state = PWR_STATE;
 		else if(state == PWR_STATE){
 			state = LAUNCH_STATE;
-			speedx = power*0.01*(marker[0][0] - striker[0][0]);
-			speedy = power*0.01*(marker[0][1] - striker[0][1]);
+			speedx = power*0.005*(marker[0][0] - striker[0][0]);
+			speedy = power*0.005*(marker[0][1] - striker[0][1]);
 		}
 		return;
 	}
@@ -39,6 +40,8 @@ window.onkeydown = function(e) {
 		camera = TOP_VIEW;
 	if(e.keyCode == aKey)
 		camera = PLAYER_VIEW;
+	if(e.keyCode == sKey)
+		camera = STRIKER_VIEW;
 	if(state == STR_STATE){
 		if(e.keyCode == leftKey){
 			striker[0][0]-=0.08;
@@ -181,27 +184,92 @@ function update() {
 				wcoinspeedx[i] = speed_array[2];
 				wcoinspeedy[i] = speed_array[3];
 			}
+			if( i == 0){
+				x1 = redCoin[0][0] + rcoinspeedx;
+				y1 = redCoin[0][1] + rcoinspeedy;
+				x2 = striker[0][0] + speedx;
+				y2 = striker[0][1] + speedy;
+				dist = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
+				if(dist<0.23){
+					var speed_array = getNewSpeeds(x1,y1,x2,y2,rcoinspeedx,rcoinspeedy,speedx,speedy, 1, 1);
+					rcoinspeedx = speed_array[0];
+					rcoinspeedy = speed_array[1];
+					speedx = speed_array[2];
+					speedy = speed_array[3];
+				}
+			}
 		}
 
+		var stopped = 0;
+		var eps = 0.0008;
+		var friction = 0.98;
+
 		for(i=0;i<9;i++){
-			bcoinspeedx[i]*=0.99;
-			bcoinspeedy[i]*=0.99;
-			wcoinspeedx[i]*=0.99;
-			wcoinspeedy[i]*=0.99;
+			bcoinspeedx[i]*=friction;
+			bcoinspeedy[i]*=friction;
+			wcoinspeedx[i]*=friction;
+			wcoinspeedy[i]*=friction;
 			blackCoins[i][0] += bcoinspeedx[i];
 			blackCoins[i][1] += bcoinspeedy[i];
 			whiteCoins[i][0] += wcoinspeedx[i];
 			whiteCoins[i][1] += wcoinspeedy[i];
+
+			if(Math.abs(bcoinspeedx[i]) > eps) 
+				stopped = 1;
+			else
+				bcoinspeedx[i] = 0;
+			if(Math.abs(bcoinspeedy[i]) > eps)
+				stopped = 1;
+			else
+				bcoinspeedy[i] = 0;
+			if( Math.abs(wcoinspeedx[i]) > eps)
+				stopped = 0;
+			else
+				wcoinspeedx[i] = 0;
+			if( Math.abs(wcoinspeedy[i]) > eps)
+				stopped = 1;
+			else
+				wcoinspeedy[i] = 0;
 		}
-		speedx = 0.99*speedx;
-		speedy = 0.99*speedy;
+		speedx = friction*speedx;
+		speedy = friction*speedy;
 		striker[0][0] += speedx;
 		striker[0][1] += speedy;
+		console.log(speedx, speedy);
+		if(Math.abs(speedx) > eps)
+			stopped = 1;
+		else
+			speedx = 0;
+		if(Math.abs(speedy) > eps)
+			stopped = 1;
+		else
+			speedy = 0;
 
-		rcoinspeedx*=0.99;
-		rcoinspeedy*=0.99;
+		rcoinspeedx*=friction;
+		rcoinspeedy*=friction;
 		redCoin[0][0] += rcoinspeedx;
 		redCoin[0][1] += rcoinspeedy;
+		if(Math.abs(rcoinspeedx) > eps)
+			stopped = 1;
+		else
+			rcoinspeedx = 0;
+		if(Math.abs(rcoinspeedy) > eps)
+			stopped = 1;
+		else
+			rcoinspeedy = 0;
+
+		if (stopped == 0){
+			state = STR_STATE;
+			striker[0][0] = 0;
+			striker[0][1] = 1.52;
+			power = 0;
+			marker[0][0] = 0;
+			marker[0][1] = 0;
+			speedx = speedy = 0;
+			rcoinspeedx = rcoinspeedy = 0;
+			for(i=0;i<9;i++)
+				bcoinspeedx[i] = bcoinspeedy[i] = wcoinspeedx[i] = wcoinspeedy[i] = 0;
+		}
 	}
 }
 
