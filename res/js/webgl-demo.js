@@ -32,6 +32,9 @@ var redCoin = [];
 var striker = [];
 var marker = [];
 
+var blackPocketed = [0,0,0,0,0,0,0,0,0];
+var whitePocketed = [0,0,0,0,0,0,0,0,0];
+
 var TOP_VIEW = 0;
 var PLAYER_VIEW = 1;
 var STRIKER_VIEW = 2;
@@ -203,7 +206,6 @@ function initBuffersForCoin() {
 		//textureCoordinates.push(0.5 + 0.5*Math.sin(ang), 0.5 + 0.5*Math.cos(ang));
 		textureCoordinates.push(1,1);
 	}
-	console.log(textureCoordinates);
 
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
 			gl.STATIC_DRAW);
@@ -228,7 +230,6 @@ function initBuffersForCoin() {
 	}
 	coinVertexIndices.push(3*div, 2*div+1, div+div);
 	coinVertexIndices.push(2*div+1, div+div, div + 1);
-	console.log(coinVertexIndices);
 
 			// Now send the element array to GL
 
@@ -552,27 +553,31 @@ function drawScene() {
 
 	var i;
 	for(i=0;i<9;i++){
-		mvPushMatrix();
-		mvTranslate([blackCoins[i][0], 0.04, blackCoins[i][1] ]);
-		mvScale([0.1,0.04,0.1]);
-		matrixSetup2(coinTexture);
-		mvPopMatrix();
+		if(!blackPocketed[i]){
+			mvPushMatrix();
+			mvTranslate([blackCoins[i][0], 0.04, blackCoins[i][1] ]);
+			mvScale([0.1,0.04,0.1]);
+			matrixSetup2(coinTexture);
+			mvPopMatrix();
+		}
 	}
-	
+
 	for(i=0;i<9;i++){
-		mvPushMatrix();
-		mvTranslate([whiteCoins[i][0], 0.04, whiteCoins[i][1] ]);
-		mvScale([0.1,0.04,0.1]);
-		matrixSetup2(coinWhiteTexture);
-		mvPopMatrix();
+		if(!whitePocketed[i]){
+			mvPushMatrix();
+			mvTranslate([whiteCoins[i][0], 0.04, whiteCoins[i][1] ]);
+			mvScale([0.1,0.04,0.1]);
+			matrixSetup2(coinWhiteTexture);
+			mvPopMatrix();
+		}
 	}
-	
+
 	mvPushMatrix();
 	mvTranslate([redCoin[0][0], 0.04, redCoin[0][1]]);
 	mvScale([0.1,0.04,0.1]);
 	matrixSetup2(coinRedTexture);
 	mvPopMatrix();
-	
+
 	mvPushMatrix();
 	mvTranslate([striker[0][0], 0.04, striker[0][1]]);
 	mvScale([0.135,0.04,0.135]);

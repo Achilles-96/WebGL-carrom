@@ -31,8 +31,8 @@ window.onkeydown = function(e) {
 			state = PWR_STATE;
 		else if(state == PWR_STATE){
 			state = LAUNCH_STATE;
-			speedx = power*0.005*(marker[0][0] - striker[0][0]);
-			speedy = power*0.005*(marker[0][1] - striker[0][1]);
+			speedx = power*0.0045*(marker[0][0] - striker[0][0]);
+			speedy = power*0.0045*(marker[0][1] - striker[0][1]);
 		}
 		return;
 	}
@@ -44,29 +44,29 @@ window.onkeydown = function(e) {
 		camera = STRIKER_VIEW;
 	if(state == STR_STATE){
 		if(e.keyCode == leftKey){
-			striker[0][0]-=0.08;
+			striker[0][0]-=0.05;
 			striker[0][0] = Math.max(striker[0][0],-1.3);
 		}
 		if(e.keyCode == rightKey){
-			striker[0][0]+=0.08;
+			striker[0][0]+=0.05;
 			striker[0][0] = Math.min(striker[0][0],1.3);
 		}
 	}
 	if(state == AIM_STATE) {
 		if(e.keyCode == leftKey){
-			marker[0][0]-=0.08;
+			marker[0][0]-=0.05;
 			marker[0][0] = Math.max(marker[0][0],-2.18);
 		}
 		if(e.keyCode == rightKey){
-			marker[0][0]+=0.08;
+			marker[0][0]+=0.05;
 			marker[0][0] = Math.min(marker[0][0],2.18);
 		}
 		if(e.keyCode == upKey){
-			marker[0][1]-=0.08;
+			marker[0][1]-=0.05;
 			marker[0][1] = Math.max(marker[0][1],-2.18);
 		}
 		if(e.keyCode == downKey){
-			marker[0][1]+=0.08;
+			marker[0][1]+=0.05;
 			marker[0][1] = Math.min(marker[0][1],2.18);
 		}
 	}
@@ -89,6 +89,10 @@ function update() {
 		if(striker[0][1] + speedy >= 2.05 || striker[0][1] + speedy<= -2.05)
 			speedy = -speedy;
 		var i,j;
+		if(redCoin[0][0] + rcoinspeedx >= 2.05 || redCoin[0][0] + rcoinspeedx <= -2.05)
+			rcoinspeedx = -rcoinspeedx;
+		if(redCoin[0][1] + rcoinspeedy >= 2.05 || redCoin[0][1] + rcoinspeedy <= -2.05)
+			rcoinspeedy = -rcoinspeedy;
 		for(i=0;i<9;i++){
 			if(blackCoins[i][0] + bcoinspeedx[i] >= 2.05 || blackCoins[i][0] + bcoinspeedx[i] <= -2.05)
 				bcoinspeedx[i] = -bcoinspeedx[i];
@@ -103,7 +107,10 @@ function update() {
 			var x2 = blackCoins[i][0] + bcoinspeedx[i];
 			var y2 = blackCoins[i][1] + bcoinspeedy[i];
 			var dist = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
-			if(dist<0.23){
+			if(dist<0.23 && !blackPocketed[i]){
+				var a = new Audio('res/sounds/coinhit.mp3');
+				a.volume = a.volume/12;
+				a.play();
 				var speed_array = getNewSpeeds(x1,y1,x2,y2,speedx,speedy,bcoinspeedx[i],bcoinspeedy[i], 1.4, 1);
 				speedx = speed_array[0];
 				speedy = speed_array[1];
@@ -113,7 +120,10 @@ function update() {
 			x2 = whiteCoins[i][0] + wcoinspeedx[i];
 			y2 = whiteCoins[i][1] + wcoinspeedy[i];
 			var dist = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
-			if(dist<0.23){
+			if(dist<0.23 && !whitePocketed[i]){
+				var a = new Audio('res/sounds/coinhit.mp3');
+				a.volume = a.volume/12;
+				a.play();
 				var speed_array = getNewSpeeds(x1,y1,x2,y2,speedx,speedy,wcoinspeedx[i],wcoinspeedy[i], 1.4, 1);
 				speedx = speed_array[0];
 				speedy = speed_array[1];
@@ -126,7 +136,10 @@ function update() {
 				x2 = blackCoins[j][0] + bcoinspeedx[j];
 				y2 = blackCoins[j][1] + bcoinspeedy[j];
 				dist = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
-				if(dist<0.2){
+				if(dist<0.2 && !blackPocketed[i] && !blackPocketed[j]){
+					var a = new Audio('res/sounds/coinhit.mp3');
+					a.volume = a.volume/12;
+					a.play();
 					var speed_array = getNewSpeeds(x1,y1,x2,y2,bcoinspeedx[i],bcoinspeedy[i],bcoinspeedx[j],bcoinspeedy[j], 1, 1);
 					bcoinspeedx[i] = speed_array[0];
 					bcoinspeedy[i] = speed_array[1];
@@ -140,12 +153,17 @@ function update() {
 				x2 = whiteCoins[j][0] + wcoinspeedx[j];
 				y2 = whiteCoins[j][1] + wcoinspeedy[j];
 				dist = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
-				if(dist<0.2){
+				if(dist<0.2 && !blackPocketed[i] && !whitePocketed[i]){
+					var a = new Audio('res/sounds/coinhit.mp3');
+					a.volume = a.volume/12;
+					a.play();
 					var speed_array = getNewSpeeds(x1,y1,x2,y2,bcoinspeedx[i],bcoinspeedy[i],wcoinspeedx[j],wcoinspeedy[j], 1, 1);
 					bcoinspeedx[i] = speed_array[0];
 					bcoinspeedy[i] = speed_array[1];
 					wcoinspeedx[j] = speed_array[2];
 					wcoinspeedy[j] = speed_array[3];
+					//whiteCoins[j][0] = blackCoins[i][0] + 0.2;
+					//whiteCoins[j][1] = blackCoins[i][1] + 0.2;
 				}
 			}
 			for(j=i+1;j<9;j++){
@@ -154,12 +172,17 @@ function update() {
 				x2 = whiteCoins[j][0] + wcoinspeedx[j];
 				y2 = whiteCoins[j][1] + wcoinspeedy[j];
 				dist = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
-				if(dist<0.2){
+				if(dist<0.2 && !whitePocketed[i] && !whitePocketed[i]){
+					var a = new Audio('res/sounds/coinhit.mp3');
+					a.volume = a.volume/12;
+					a.play();
 					var speed_array = getNewSpeeds(x1,y1,x2,y2,wcoinspeedx[i],wcoinspeedy[i],wcoinspeedx[j],wcoinspeedy[j], 1, 1);
 					wcoinspeedx[i] = speed_array[0];
 					wcoinspeedy[i] = speed_array[1];
 					wcoinspeedx[j] = speed_array[2];
 					wcoinspeedy[j] = speed_array[3];
+					//whiteCoins[j][0] = whiteCoins[i][0] + 0.2;
+					//whiteCoins[j][1] = whiteCoins[i][1] + 0.2;
 				}
 			}
 			x1 = redCoin[0][0] + rcoinspeedx;
@@ -167,7 +190,10 @@ function update() {
 			x2 = blackCoins[i][0] + bcoinspeedx[i];
 			y2 = blackCoins[i][1] + bcoinspeedy[i];
 			dist = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
-			if(dist<0.2){
+			if(dist<0.2 && !blackPocketed[i]){
+				var a = new Audio('res/sounds/coinhit.mp3');
+				a.volume = a.volume/12;
+				a.play();
 				var speed_array = getNewSpeeds(x1,y1,x2,y2,rcoinspeedx,rcoinspeedy,bcoinspeedx[i],bcoinspeedy[i], 1, 1);
 				rcoinspeedx = speed_array[0];
 				rcoinspeedy = speed_array[1];
@@ -177,7 +203,10 @@ function update() {
 			x2 = whiteCoins[i][0] + wcoinspeedx[i];
 			y2 = whiteCoins[i][1] + wcoinspeedy[i];
 			dist = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
-			if(dist<0.2){
+			if(dist<0.2 && !whitePocketed[i]){
+				var a = new Audio('res/sounds/coinhit.mp3');
+				a.volume = a.volume/12;
+				a.play();
 				var speed_array = getNewSpeeds(x1,y1,x2,y2,rcoinspeedx,rcoinspeedy,wcoinspeedx[i],wcoinspeedy[i], 1, 1);
 				rcoinspeedx = speed_array[0];
 				rcoinspeedy = speed_array[1];
@@ -190,7 +219,10 @@ function update() {
 				x2 = striker[0][0] + speedx;
 				y2 = striker[0][1] + speedy;
 				dist = Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
-				if(dist<0.23){
+				if(dist<0.23 ){
+					var a = new Audio('res/sounds/coinhit.mp3');
+					a.volume = a.volume/12;
+					a.play();
 					var speed_array = getNewSpeeds(x1,y1,x2,y2,rcoinspeedx,rcoinspeedy,speedx,speedy, 1, 1);
 					rcoinspeedx = speed_array[0];
 					rcoinspeedy = speed_array[1];
@@ -214,6 +246,55 @@ function update() {
 			whiteCoins[i][0] += wcoinspeedx[i];
 			whiteCoins[i][1] += wcoinspeedy[i];
 
+			if(blackCoins[i][0] > 2.0 && blackCoins[i][1] > 2.0){
+				blackPocketed[i] = 1;
+				var a = new Audio('res/sounds/pocket.mp3');
+				a.volume = a.volume/12;
+				a.play();
+			}
+			if(blackCoins[i][0] > 2.0 && blackCoins[i][1] < -2.0){
+				blackPocketed[i] = 1;
+				var a = new Audio('res/sounds/pocket.mp3');
+				a.volume = a.volume/12;
+				a.play();
+			}
+			if(blackCoins[i][0] < -2.0 && blackCoins[i][1] > 2.0){
+				blackPocketed[i] = 1;
+				var a = new Audio('res/sounds/pocket.mp3');
+				a.volume = a.volume/12;
+				a.play();
+			}
+			if(blackCoins[i][0] < -2.0 && blackCoins[i][1] < -2.0){
+				blackPocketed[i] = 1;
+				var a = new Audio('res/sounds/pocket.mp3');
+				a.volume = a.volume/12;
+				a.play();
+			}
+			if(whiteCoins[i][0] > 2.0 && whiteCoins[i][1] > 2.0){
+				whitePocketed[i] = 1;
+				var a = new Audio('res/sounds/pocket.mp3');
+				a.volume = a.volume/12;
+				a.play();
+			}
+			if(whiteCoins[i][0] > 2.0 && whiteCoins[i][1] < -2.0){
+				whitePocketed[i] = 1;
+				var a = new Audio('res/sounds/pocket.mp3');
+				a.volume = a.volume/12;
+				a.play();
+			}
+			if(whiteCoins[i][0] < -2.0 && whiteCoins[i][1] > 2.0){
+				whitePocketed[i] = 1;
+				var a = new Audio('res/sounds/pocket.mp3');
+				a.volume = a.volume/12;
+				a.play();
+			}
+			if(whiteCoins[i][0] < -1.9 && whiteCoins[i][1] < -1.9){
+				whitePocketed[i] = 1;
+				var a = new Audio('res/sounds/pocket.mp3');
+				a.volume = a.volume/12;
+				a.play();
+			}
+
 			if(Math.abs(bcoinspeedx[i]) > eps) 
 				stopped = 1;
 			else
@@ -235,7 +316,6 @@ function update() {
 		speedy = friction*speedy;
 		striker[0][0] += speedx;
 		striker[0][1] += speedy;
-		console.log(speedx, speedy);
 		if(Math.abs(speedx) > eps)
 			stopped = 1;
 		else
