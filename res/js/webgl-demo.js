@@ -1,5 +1,7 @@
 var canvas;
 var gl;
+var scoregl;
+var powergl;
 
 var cubeVerticesBuffer;
 var cubeVerticesTextureCoordBuffer;
@@ -34,6 +36,7 @@ var marker = [];
 
 var blackPocketed = [0,0,0,0,0,0,0,0,0];
 var whitePocketed = [0,0,0,0,0,0,0,0,0];
+var redPocketed = 0;
 
 var TOP_VIEW = 0;
 var PLAYER_VIEW = 1;
@@ -41,6 +44,8 @@ var STRIKER_VIEW = 2;
 var camera = TOP_VIEW;
 
 var power = 0;
+var score = 100;
+var lastnotedtime;
 //
 // start
 //
@@ -96,6 +101,7 @@ function start() {
 		redCoin.push([0,0]);
 		striker.push([0,1.52]);
 		marker.push([0,0]);
+		lastnotedtime = Date.now();
 		setInterval(drawScene, 15);
 	}
 }
@@ -112,6 +118,8 @@ function initWebGL() {
 	try {
 		//gl = canvas.getContext("experimental-webgl",{premultipliedAlpha:false});
 		gl = canvas.getContext("experimental-webgl");
+		scoregl = document.getElementById("textcanvas").getContext("2d");
+		powergl = document.getElementById("powercanvas").getContext("2d");
 	}
 	catch(e) {
 	}
@@ -474,6 +482,25 @@ function drawScene() {
 
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+	var timenow = Date.now();
+	var seconds = (timenow - lastnotedtime)/1000;
+	if(seconds >=5){
+		score--;
+		lastnotedtime = timenow;
+	}
+
+	scoregl.clearRect(0,0,100,100);
+	scoregl.font = "30px Comic Sans MS";
+	scoregl.fillStyle = "brown";
+	document.getElementById('textcanvas').style.background = 'rgba(0,0,0,0)';
+	scoregl.fillText("Score",10,50);
+	scoregl.fillText(""+score,20, 80);
+
+	powergl.clearRect(0,0,100,100);
+	powergl.font = "30px Comic Sans MS";
+	powergl.fillStyle = "green";
+	document.getElementById('powercanvas').style.background = 'rgba(0,0,0,0)';
+	powergl.fillText("Power",10,30);
 	// Establish the perspective with which we want to view the
 	// scene. Our field of view is 45 degrees, with a width/height
 	// ratio of 640:480, and we only want to see objects between 0.1 units
@@ -572,11 +599,13 @@ function drawScene() {
 		}
 	}
 
-	mvPushMatrix();
-	mvTranslate([redCoin[0][0], 0.04, redCoin[0][1]]);
-	mvScale([0.1,0.04,0.1]);
-	matrixSetup2(coinRedTexture);
-	mvPopMatrix();
+	if(!redPocketed){
+		mvPushMatrix();
+		mvTranslate([redCoin[0][0], 0.04, redCoin[0][1]]);
+		mvScale([0.1,0.04,0.1]);
+		matrixSetup2(coinRedTexture);
+		mvPopMatrix();
+	}
 
 	mvPushMatrix();
 	mvTranslate([striker[0][0], 0.04, striker[0][1]]);
@@ -607,7 +636,7 @@ function drawScene() {
 	var pos = 0;
 	for(i=0;i<power+1;i++){
 		mvPushMatrix();
-		mvTranslate([2.5, 1, pos]);
+		mvTranslate([2.4, 1, pos]);
 		mvScale([0.11,0.1,0.05]);
 		matrixSetup(powerTexture);
 		mvPopMatrix();

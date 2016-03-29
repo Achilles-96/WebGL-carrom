@@ -23,6 +23,7 @@ var speedx=0, speedy=0, rcoinspeedx=0, rcoinspeedy=0;
 var bcoinspeedx = [0,0,0,0,0,0,0,0,0], bcoinspeedy = [0,0,0,0,0,0,0,0,0];
 var wcoinspeedx = [0,0,0,0,0,0,0,0,0], wcoinspeedy = [0,0,0,0,0,0,0,0,0];
 
+var rInTurn = 0;
 window.onkeydown = function(e) {
 	if(e.keyCode == enter) {
 		if(state == STR_STATE)
@@ -31,8 +32,8 @@ window.onkeydown = function(e) {
 			state = PWR_STATE;
 		else if(state == PWR_STATE){
 			state = LAUNCH_STATE;
-			speedx = power*0.0045*(marker[0][0] - striker[0][0]);
-			speedy = power*0.0045*(marker[0][1] - striker[0][1]);
+			speedx = power*0.004*(marker[0][0] - striker[0][0]);
+			speedy = power*0.004*(marker[0][1] - striker[0][1]);
 		}
 		return;
 	}
@@ -235,6 +236,7 @@ function update() {
 		var stopped = 0;
 		var eps = 0.0008;
 		var friction = 0.98;
+		var wInTurn = 0;
 
 		for(i=0;i<9;i++){
 			bcoinspeedx[i]*=friction;
@@ -246,52 +248,72 @@ function update() {
 			whiteCoins[i][0] += wcoinspeedx[i];
 			whiteCoins[i][1] += wcoinspeedy[i];
 
-			if(blackCoins[i][0] > 2.0 && blackCoins[i][1] > 2.0){
+			if(blackCoins[i][0] > 2.0 && blackCoins[i][1] > 2.0 && !blackPocketed[i]){
 				blackPocketed[i] = 1;
+				score -= 20;
 				var a = new Audio('res/sounds/pocket.mp3');
-				a.volume = a.volume/12;
+				a.volume = a.volume/8;
 				a.play();
 			}
-			if(blackCoins[i][0] > 2.0 && blackCoins[i][1] < -2.0){
+			if(blackCoins[i][0] > 2.0 && blackCoins[i][1] < -2.0 && !blackPocketed[i]){
 				blackPocketed[i] = 1;
+				score -= 20;
 				var a = new Audio('res/sounds/pocket.mp3');
-				a.volume = a.volume/12;
+				a.volume = a.volume/8;
 				a.play();
 			}
-			if(blackCoins[i][0] < -2.0 && blackCoins[i][1] > 2.0){
+			if(blackCoins[i][0] < -2.0 && blackCoins[i][1] > 2.0 && !blackPocketed[i]){
 				blackPocketed[i] = 1;
+				score -= 20;
 				var a = new Audio('res/sounds/pocket.mp3');
-				a.volume = a.volume/12;
+				a.volume = a.volume/8;
 				a.play();
 			}
-			if(blackCoins[i][0] < -2.0 && blackCoins[i][1] < -2.0){
+			if(blackCoins[i][0] < -2.0 && blackCoins[i][1] < -2.0 && !blackPocketed[i]){
 				blackPocketed[i] = 1;
+				score -= 20;
 				var a = new Audio('res/sounds/pocket.mp3');
-				a.volume = a.volume/12;
+				a.volume = a.volume/8;
 				a.play();
 			}
-			if(whiteCoins[i][0] > 2.0 && whiteCoins[i][1] > 2.0){
+			if(whiteCoins[i][0] > 2.0 && whiteCoins[i][1] > 2.0 && !whitePocketed[i]){
 				whitePocketed[i] = 1;
+				score += 5;
+				wInTurn = 1;
+				if(redPocketed == 1)
+					score += 15;
 				var a = new Audio('res/sounds/pocket.mp3');
-				a.volume = a.volume/12;
+				a.volume = a.volume/8;
 				a.play();
 			}
-			if(whiteCoins[i][0] > 2.0 && whiteCoins[i][1] < -2.0){
+			if(whiteCoins[i][0] > 2.0 && whiteCoins[i][1] < -2.0 && !whitePocketed[i]){
 				whitePocketed[i] = 1;
+				score += 5;
+				wInTurn = 1;
+				if(redPocketed == 1)
+					score += 15;
 				var a = new Audio('res/sounds/pocket.mp3');
-				a.volume = a.volume/12;
+				a.volume = a.volume/8;
 				a.play();
 			}
-			if(whiteCoins[i][0] < -2.0 && whiteCoins[i][1] > 2.0){
+			if(whiteCoins[i][0] < -2.0 && whiteCoins[i][1] > 2.0 && !whitePocketed[i]){
 				whitePocketed[i] = 1;
+				score += 5;
+				wInTurn = 1;
+				if(redPocketed == 1)
+					score += 15;
 				var a = new Audio('res/sounds/pocket.mp3');
-				a.volume = a.volume/12;
+				a.volume = a.volume/8;
 				a.play();
 			}
-			if(whiteCoins[i][0] < -1.9 && whiteCoins[i][1] < -1.9){
+			if(whiteCoins[i][0] < -2.0 && whiteCoins[i][1] < -2.0 && !whitePocketed[i]){
 				whitePocketed[i] = 1;
+				score += 5;
+				wInTurn = 1;
+				if(redPocketed == 1)
+					score += 15;
 				var a = new Audio('res/sounds/pocket.mp3');
-				a.volume = a.volume/12;
+				a.volume = a.volume/8;
 				a.play();
 			}
 
@@ -329,6 +351,22 @@ function update() {
 		rcoinspeedy*=friction;
 		redCoin[0][0] += rcoinspeedx;
 		redCoin[0][1] += rcoinspeedy;
+		if(redCoin[0][0] > 2.0 && redCoin[0][1] > 2.0 && !redPocketed){
+			redPocketed = 1;
+			rInTurn = 1;
+		}
+		if(redCoin[0][0] < -2.0 && redCoin[0][1] > 2.0 && !redPocketed){
+			redPocketed = 1;
+			rInTurn = 1;
+		}
+		if(redCoin[0][0] > 2.0 && redCoin[0][1] < -2.0 && !redPocketed){
+			redPocketed = 1;
+			rInTurn = 1;
+		}
+		if(redCoin[0][0] < -2.0 && redCoin[0][1] < -2.0 && !redPocketed){
+			redPocketed = 1;
+			rInTurn = 1;
+		}
 		if(Math.abs(rcoinspeedx) > eps)
 			stopped = 1;
 		else
@@ -349,6 +387,11 @@ function update() {
 			rcoinspeedx = rcoinspeedy = 0;
 			for(i=0;i<9;i++)
 				bcoinspeedx[i] = bcoinspeedy[i] = wcoinspeedx[i] = wcoinspeedy[i] = 0;
+			if(redPocketed && !wInTurn && !rInTurn){
+				redPocketed = 0;
+				redCoin[0][0] = redCoin[0][1] = 0;
+			}
+			rInTurn=0;
 		}
 	}
 }
